@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>ソウル旅行計画 2026.5.3–5.5</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f0ede8;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --sub: #666;
+  --border: #ddd9d3;
+  --d1: #1a4a7a; --d1b: #2e7dd4; --d1l: #eaf2fb;
+  --d2: #145a32; --d2b: #239a5e; --d2l: #eafaf1;
+  --d3: #7b3300; --d3b: #d4692a; --d3l: #fef5eb;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 3rem; }
+
+/* HERO */
+.hero {
+  background: linear-gradient(150deg, #0c1f36 0%, #1a4068 60%, #0c2a4a 100%);
+  color: #fff; padding: 2.2rem 1.2rem 1.8rem; text-align: center;
+}
+.hero h1 { font-family: 'Playfair Display', serif; font-size: 1.9rem; margin: .4rem 0 .3rem; }
+.hero-sub { color: rgba(255,255,255,.65); font-size: .85rem; letter-spacing: .1em; }
+.badges { display: flex; justify-content: center; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+.badge { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: 3px 12px; font-size: .75rem; color: rgba(255,255,255,.9); }
+
+/* HOTEL */
+.outer { max-width: 720px; margin: 0 auto; padding: 0 1rem; }
+.hotel-card {
+  background: var(--card); border-radius: var(--radius); border-left: 4px solid #6a3d8a;
+  box-shadow: var(--shadow); padding: .9rem 1.1rem;
+  display: flex; gap: .9rem; align-items: flex-start; margin-top: 1rem;
+}
+.hotel-icon { width: 40px; height: 40px; border-radius: 8px; background: #f5eef8; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.hotel-info h3 { font-size: .88rem; font-weight: 700; color: #5a2070; }
+.hotel-info p { font-size: .76rem; color: var(--sub); margin-top: 3px; line-height: 1.65; }
+.alert-box { margin-top: .6rem; background: #fff8e1; border: 1px solid #f0c040; border-radius: 8px; padding: .5rem .8rem; font-size: .75rem; color: #7a5000; line-height: 1.65; }
+.alert-box b { color: #5a3a00; }
+
+/* TABS */
+.tab-wrap { max-width: 720px; margin: 1.1rem auto 0; padding: 0 1rem; }
+.tab-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: .45rem; margin-bottom: 1rem; }
+.tab-btn {
+  background: var(--card); border: 2px solid var(--border); border-radius: 10px;
+  padding: .65rem .3rem; cursor: pointer; text-align: center;
+  font-family: 'Noto Sans JP', sans-serif; transition: all .18s;
+}
+.tb-day { font-size: .68rem; letter-spacing: .08em; color: var(--sub); }
+.tb-date { font-size: .9rem; font-weight: 700; margin: 2px 0; color: var(--text); }
+.tb-theme { font-size: .7rem; color: var(--sub); }
+.tab-btn.a1 { border-color: var(--d1b); background: var(--d1l); }
+.tab-btn.a1 .tb-date, .tab-btn.a1 .tb-day { color: var(--d1); }
+.tab-btn.a2 { border-color: var(--d2b); background: var(--d2l); }
+.tab-btn.a2 .tb-date, .tab-btn.a2 .tb-day { color: var(--d2); }
+.tab-btn.a3 { border-color: var(--d3b); background: var(--d3l); }
+.tab-btn.a3 .tb-date, .tab-btn.a3 .tb-day { color: var(--d3); }
+
+/* DAY PAGE */
+.day-page { display: none; }
+.day-page.active { display: block; }
+
+.day-head { border-radius: 12px 12px 0 0; padding: .9rem 1.1rem; color: #fff; display: flex; align-items: center; gap: .7rem; }
+.hd1 { background: linear-gradient(135deg, var(--d1), var(--d1b)); }
+.hd2 { background: linear-gradient(135deg, var(--d2), var(--d2b)); }
+.hd3 { background: linear-gradient(135deg, var(--d3), var(--d3b)); }
+.day-num-badge { background: rgba(255,255,255,.22); border-radius: 6px; padding: 2px 9px; font-size: .68rem; font-weight: 700; letter-spacing: .1em; }
+.day-head h2 { font-size: .98rem; font-weight: 700; }
+.day-head .dr { margin-left: auto; font-size: .78rem; opacity: .82; white-space: nowrap; }
+
+/* TIMELINE */
+.tl-card { background: var(--card); border-radius: 0 0 12px 12px; box-shadow: var(--shadow); padding: 1rem 1.1rem 1.2rem; margin-bottom: 1rem; }
+.tl-item { display: flex; }
+.tl-gut { width: 52px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+.tl-t { font-size: .7rem; font-weight: 700; color: var(--sub); text-align: center; padding-top: 14px; line-height: 1.3; }
+.tl-dc { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; margin-top: 16px; z-index: 1; }
+.vl { width: 2px; flex: 1; min-height: 18px; background: var(--border); margin-top: 2px; }
+.tl-body { flex: 1; padding: 12px 0 14px 10px; border-bottom: 1px solid #eee; }
+.tl-item:last-child .tl-body { border-bottom: none; }
+.tl-item:last-child .vl { display: none; }
+
+.spot-name { font-size: .93rem; font-weight: 700; margin-bottom: 1px; }
+.spot-read { font-size: .73rem; color: #999; margin-bottom: 4px; font-style: italic; }
+.desc { font-size: .8rem; color: #444; line-height: 1.72; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+.tag { font-size: .67rem; font-weight: 700; padding: 2px 7px; border-radius: 9px; }
+.th { background: #e8f5e9; color: #1b5e20; }
+.tf { background: #fff3e0; color: #bf360c; }
+.ts { background: #e3f2fd; color: #0d47a1; }
+.tp { background: #fce4ec; color: #880e4f; }
+.tn { background: #f1f1f1; color: #555; }
+
+/* 移動ボックス */
+.move { margin-top: 8px; background: #f4f0ff; border: 1px solid #cfc4ee; border-radius: 9px; padding: 7px 10px; }
+.move-h { font-weight: 700; font-size: .75rem; color: #4a148c; margin-bottom: 4px; }
+.move-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin-bottom: 3px; }
+.move-row:last-child { margin-bottom: 0; }
+.move-route { flex: 1; min-width: 160px; font-size: .77rem; color: #3a2270; line-height: 1.65; }
+.move-fee { font-weight: 700; background: #ede7f6; border-radius: 5px; padding: 1px 7px; font-size: .75rem; color: #4a148c; white-space: nowrap; }
+.move-alt { font-size: .72rem; color: #6a5aaa; margin-top: 3px; line-height: 1.6; }
+
+/* TIP / WARN */
+.tip { margin-top: 7px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 6px 9px; font-size: .78rem; color: #78350f; line-height: 1.7; }
+.tip b { color: #92400e; }
+.warn { margin-top: 7px; background: #fff5f5; border-left: 3px solid #ef4444; border-radius: 0 8px 8px 0; padding: 6px 9px; font-size: .78rem; color: #7f1d1d; line-height: 1.7; }
+.warn b { color: #991b1b; }
+
+/* INFO */
+.info-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: .9rem 1.1rem; margin-bottom: 1rem; }
+.info-card h3 { font-size: .82rem; font-weight: 700; color: var(--sub); letter-spacing: .08em; margin-bottom: .7rem; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.inf { font-size: .78rem; line-height: 1.65; color: #444; }
+.inf b { display: block; font-weight: 700; color: var(--text); font-size: .8rem; }
+
+/* MAP */
+.map-section { max-width: 720px; margin: 0 auto; padding: 0 1rem 1rem; }
+.map-header {
+  border-radius: 12px 12px 0 0;
+  padding: .75rem 1.1rem;
+  color: #fff;
+  display: flex; align-items: center; gap: .6rem;
+  font-size: .88rem; font-weight: 700;
+}
+.map-wrap { background: var(--card); border-radius: 0 0 12px 12px; box-shadow: var(--shadow); overflow: hidden; }
+.leaflet-map { height: 400px; width: 100%; }
+.map-legend {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  padding: .7rem 1rem; border-top: 1px solid var(--border);
+  font-size: .74rem; color: var(--sub);
+}
+.leg { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+@media (max-width: 480px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 1.5rem; }
+}
+  .hero h1 { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div style="font-size:2.2rem">🇰🇷</div>
+  <h1>Seoul Trip 2026</h1>
+  <div class="hero-sub">MAY 3 – 5 ／ 2泊3日 ／ 大韓航空 KE2172・KE2173</div>
+  <div class="badges">
+    <span class="badge">✈️ 神戸 ⇄ 仁川国際空港</span>
+    <span class="badge">🏨 Recenz Hotel</span>
+    <span class="badge">👥 4名・2部屋</span>
+  </div>
+</div>
+
+<!-- ホテル -->
+<div class="outer">
+  <div class="hotel-card">
+    <div class="hotel-icon">🏨</div>
+    <div class="hotel-info">
+      <h3>Recenz Hotel（レセンツ ホテル）</h3>
+      <p>📍 383 Cheonho-daero, Dongdaemun District, Seoul<br>
+      チェックイン：2026/5/3 ／ チェックアウト：2026/5/5 ／ スタンダードツイン × 2部屋・大人4名</p>
+      <div class="alert-box">
+        <b>⚠️ 位置に注意！</b>「東大門区」内ですが、東大門市場・東大門デザインプラザより<b>東に約2km</b>離れた場所です。
+        最寄り駅は地下鉄5号線「<b>長漢坪（チャンハンピョン）駅</b>」付近。観光エリアへは地下鉄で25〜35分かかります。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-wrap">
+  <div class="tab-btns">
+    <button class="tab-btn a1" onclick="sw(1)">
+      <div class="tb-day">DAY 1</div>
+      <div class="tb-date">5月3日</div>
+      <div class="tb-theme">到着・市内散策</div>
+    </button>
+    <button class="tab-btn" onclick="sw(2)">
+      <div class="tb-day">DAY 2</div>
+      <div class="tb-date">5月4日</div>
+      <div class="tb-theme">ソウル全力観光</div>
+    </button>
+    <button class="tab-btn" onclick="sw(3)">
+      <div class="tb-day">DAY 3</div>
+      <div class="tb-date">5月5日</div>
+      <div class="tb-theme">午前観光・帰国</div>
+    </button>
+  </div>
+
+  <!-- ===== DAY 1 ===== -->
+  <div class="day-page active" id="p1">
+    <div class="day-head hd1">
+      <span class="day-num-badge">DAY 1</span>
+      <h2>到着 &amp; 市内観光スタート</h2>
+      <span class="dr">5月3日（日）</span>
+    </div>
+    <div class="tl-card">
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">11:55</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">✈️ 神戸空港 出発</div>
+          <div class="desc">KE2172便 エコノミークラス ／ 受託手荷物 23kg×1個<br>出発2時間前（9:55頃）には空港到着を推奨</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">13:45</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🛬 仁川国際空港 到着</div>
+          <div class="spot-read">Incheon International Airport</div>
+          <div class="desc">入国審査・手荷物受取・両替（KEB 하나銀行 または KB 国民銀行推奨）<br>T-moneyカード購入：空港内コンビニで約400円</div>
+          <div class="move">
+            <div class="move-h">🚌 空港 → Recenz Hotel（2つの選択肢）</div>
+            <div class="move-row">
+              <span class="move-route">① リムジンバス 3300番または空港バス：東大門・長漢坪方面直行 約75〜90分</span>
+              <span class="move-fee">約1,600円</span>
+            </div>
+            <div class="move-row">
+              <span class="move-route">② AREX直通 → ソウル駅（43分）→ 地下鉄5号線 → 長漢坪駅 約70〜80分</span>
+              <span class="move-fee">約1,050円</span>
+            </div>
+            <div class="move-alt">💡 荷物が多いのでリムジンバスが楽。長漢坪駅周辺に停まる路線を空港で確認して。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">15:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏨 Recenz Hotel チェックイン &amp; 荷物を置く</div>
+          <div class="desc">チェックイン後、荷物を置いて身軽になってから観光スタート。<br>ホテル周辺に飲食店あり、コンビニも近い。</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">16:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🛍️ 南大門市場 散策</div>
+          <div class="spot-read">Namdaemun Market ／ ナンデムン シジャン</div>
+          <div class="desc">韓国最大の伝統市場。衣類・雑貨・食べ歩きが充実。名物のカルグクス（刀削麺）もここで。</div>
+          <div class="tags"><span class="tag ts">ショッピング</span><span class="tag tf">グルメ</span></div>
+          <div class="move">
+            <div class="move-h">🚇 ホテル → 南大門市場</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：長漢坪駅（5号線）→ 光化門駅 乗換 → 会賢駅（4号線）3番出口 徒歩3分 ／ 約30分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">18:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏯 景福宮 夕方散歩</div>
+          <div class="spot-read">Gyeongbokgung Palace ／ キョンボックン</div>
+          <div class="desc">朝鮮王朝最大の宮殿。夕暮れ時は幻想的な雰囲気で人も少なめ。<br>韓服レンタルで記念撮影も可。入場料：約285円 ／ 夜間開場：18:00〜21:00（3〜5月）<br>
+          最寄り：地下鉄3号線 景福宮駅 2番出口すぐ</div>
+          <div class="tags"><span class="tag th">歴史・世界遺産</span><span class="tag tp">フォトスポット</span></div>
+          <div class="move">
+            <div class="move-h">🚇 南大門市場 → 景福宮</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：会賢駅（4号線）→ ソウル駅乗換 → 景福宮駅（3号線）2番出口 約20分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">20:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d1b)"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🍖 夕食：三清洞エリアでサムギョプサル</div>
+          <div class="spot-read">Samcheong-dong ／ サムチョンドン</div>
+          <div class="desc">景福宮北側のオシャレな路地。サムギョプサル（豚の三枚肉焼き）1人前 約1,430円〜。<br>食後はタクシーでホテルへ直帰が楽。</div>
+          <div class="tags"><span class="tag tf">グルメ</span></div>
+          <div class="move">
+            <div class="move-h">🚕 三清洞 → ホテル（帰宅）</div>
+            <div class="move-row">
+              <span class="move-route">タクシー（Kakao Taxiアプリ推奨）：三清洞 → 長漢坪駅周辺 約20〜30分</span>
+              <span class="move-fee">約1,900〜2,850円</span>
+            </div>
+            <div class="move-alt">または地下鉄：安国駅（3号線）→ 乗換 → 長漢坪駅（5号線）約30分 / 約140円</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /DAY1 -->
+
+  <!-- ===== DAY 2 ===== -->
+  <div class="day-page" id="p2">
+    <div class="day-head hd2">
+      <span class="day-num-badge">DAY 2</span>
+      <h2>ソウル全力観光デー</h2>
+      <span class="dr">5月4日（月）</span>
+    </div>
+    <div class="tl-card">
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">09:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏘️ 北村韓屋村 朝散歩</div>
+          <div class="spot-read">Bukchon Hanok Village ／ プクチョン ハノンマウル</div>
+          <div class="desc">伝統的な韓屋が連なる絶景スポット。朝イチが空いていて写真映え最高。<br>入場無料 ／ 住宅街なので静かに。観光時間：10:00〜17:00<br>
+          最寄り：地下鉄3号線 安国駅 2番出口 → 徒歩5分</div>
+          <div class="tags"><span class="tag th">伝統文化</span><span class="tag tp">フォトスポット</span></div>
+          <div class="move">
+            <div class="move-h">🚇 ホテル → 北村韓屋村</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：長漢坪駅（5号線）→ 光化門駅乗換 → 安国駅（3号線）2番出口 → 徒歩5分 ／ 約30分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">10:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🎨 仁寺洞通り ショッピング</div>
+          <div class="spot-read">Insadong ／ インサドン</div>
+          <div class="desc">伝統工芸・アート・お土産の聖地。サムジギル（複合ショッピングモール）は掘り出し物あり。<br>北村から徒歩10〜15分圏内。入場無料。</div>
+          <div class="tags"><span class="tag ts">ショッピング</span></div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">12:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🍱 昼食：仁寺洞周辺で韓定食または冷麺</div>
+          <div class="desc">韓定食（ハンジョンシク）：約1,430〜2,380円 ／ 平壌冷麺：約1,430円〜</div>
+          <div class="tags"><span class="tag tf">グルメ</span></div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">13:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏛️ 景福宮（世界遺産）</div>
+          <div class="spot-read">Gyeongbokgung Palace ／ キョンボックン</div>
+          <div class="desc">朝鮮王朝最大の宮殿。月曜開館（火曜定休）なのでDAY 2に移動。<br>入場料：約285円。韓服レンタルで入場無料になることも。<br>広大な敷地でじっくり2時間は欲しい。<br>
+          最寄り：地下鉄3号線 景福宮駅 2番出口すぐ</div>
+          <div class="tags"><span class="tag th">歴史・世界遺産</span><span class="tag tp">フォトスポット</span></div>
+          <div class="tip"><b>💡 DAY 1夜に景福宮を夕方散歩した場合は省いてOK。</b>その分ゆっくり仁寺洞・北村を楽しんで。</div>
+          <div class="move">
+            <div class="move-h">🚇 仁寺洞 → 景福宮</div>
+            <div class="move-row">
+              <span class="move-route">徒歩：仁寺洞から景福宮まで約15〜20分（または安国駅→景福宮駅1駅）</span>
+              <span class="move-fee">徒歩無料</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">16:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">📚 ピョルマダン図書館（COEXモール内）</div>
+          <div class="spot-read">Starfield Library, COEX ／ ピョルマダン トソグァン</div>
+          <div class="desc">12m超の巨大書棚が圧巻のインスタ映えスポット。入場完全無料。<br>COEXモール内なのでショッピングも一緒に楽しめる。<br>
+          最寄り：地下鉄2号線 三成駅 5・6番出口 直結</div>
+          <div class="tags"><span class="tag tp">インスタ映え</span><span class="tag tn">入場無料</span></div>
+          <div class="move">
+            <div class="move-h">🚇 景福宮 → ピョルマダン図書館（COEX）</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：景福宮駅（3号線）→ 乗換 → 三成駅（2号線）5・6番出口 直結 ／ 約35分</span>
+              <span class="move-fee">約157円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">18:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🌅 漢江公園 夕暮れピクニック</div>
+          <div class="spot-read">Hangang Park, Ttukseom ／ ハンガン ゴンウォン トゥッソム</div>
+          <div class="desc">漢江ピクニックは韓国旅行の定番体験！チキン＆ビールを注文して芝生でのんびり。<br>チキン＋ビール（4人シェア）：約2,850〜3,800円。5月は夕暮れが最高！</div>
+          <div class="tags"><span class="tag tf">グルメ体験</span><span class="tag tn">自然</span></div>
+          <div class="move">
+            <div class="move-h">🚇 三成（COEX）→ 漢江公園（トゥッソム遊園地）</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：三成駅（2号線）→ トゥッソム遊園地駅 1番出口 ／ 約20分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+            <div class="move-alt">漢江公園はホテルから比較的近い ★帰りはトゥッソム遊園地駅 → 長漢坪駅 約15〜20分 / 約140円</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">20:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d2b)"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🗼 南山タワー 夜景（余裕があれば）</div>
+          <div class="spot-read">N Seoul Tower ／ ナムサン タウォ</div>
+          <div class="desc">ソウルの夜景を一望。展望台：約2,000円 ／ ケーブルカー往復：約1,430円<br>漢江から距離があるので、疲れていたら省いて翌朝に備えるのも正解。</div>
+          <div class="tags"><span class="tag tp">夜景スポット</span></div>
+          <div class="move">
+            <div class="move-h">🚕 漢江公園 → 南山タワー</div>
+            <div class="move-row">
+              <span class="move-route">タクシー：トゥッソム遊園地 → 南山タワー ／ 約30〜40分</span>
+              <span class="move-fee">約1,900〜2,850円</span>
+            </div>
+            <div class="move-alt">帰りは南山タワー → タクシー → 長漢坪駅周辺 約30分 / 約2,000〜2,850円</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /DAY2 -->
+
+  <!-- ===== DAY 3 ===== -->
+  <div class="day-page" id="p3">
+    <div class="day-head hd3">
+      <span class="day-num-badge">DAY 3</span>
+      <h2>昌徳宮マスト &amp; 帰国フライト</h2>
+      <span class="dr">5月5日（火・こどもの日）</span>
+    </div>
+    <div class="tl-card">
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">08:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏨 ホテルチェックアウト &amp; 荷物預け</div>
+          <div class="desc">チェックアウト後、フロントに荷物を預けて軽装で観光へ。出発前に回収。<br>DAY 3は時間が限られるので早めに動くのがポイント。</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">09:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏰 昌徳宮（世界遺産）★マスト</div>
+          <div class="spot-read">Changdeokgung Palace ／ チャンドックン</div>
+          <div class="desc">UNESCO世界遺産。火曜開館（月曜定休）なのでDAY 3確定。<br>後苑（秘苑）付きガイドツアーが最大の見どころ。定員制なので<b>要事前予約</b>。<br>入場料：約285円 ／ 秘苑ツアー：追加約475円 ／ 所要：約2時間<br>
+          最寄り：地下鉄3号線 安国駅 3番出口 → 徒歩5分</div>
+          <div class="tags"><span class="tag th">歴史・世界遺産</span></div>
+          <div class="tip"><b>💡 秘苑ツアーは公式サイト（cdg.go.kr）で事前オンライン予約必須！</b>当日は埋まりやすいので旅行前に予約を。</div>
+          <div class="move">
+            <div class="move-h">🚇 ホテル → 昌徳宮</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：長漢坪駅（5号線）→ 光化門駅乗換 → 安国駅（3号線）3番出口 → 徒歩5分 ／ 約30〜35分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">11:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🛍️ 明洞でお土産 &amp; 昼食</div>
+          <div class="spot-read">Myeongdong ／ ミョンドン</div>
+          <div class="desc">コスメ・お土産のまとめ買いに最適。トッポッキ・ホットクなど食べ歩きグルメも充実。<br>最寄り：地下鉄4号線 明洞駅 8番出口</div>
+          <div class="tags"><span class="tag ts">ショッピング</span><span class="tag tf">食べ歩き</span></div>
+          <div class="move">
+            <div class="move-h">🚇 昌徳宮（安国）→ 明洞</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：安国駅（3号線）→ 東大門歴史文化公園駅乗換 → 明洞駅（4号線）8番出口 ／ 約20分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">12:15</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏨 ホテルへ戻り荷物ピックアップ</div>
+          <div class="move">
+            <div class="move-h">🚇 明洞 → ホテル（Recenz Hotel）</div>
+            <div class="move-row">
+              <span class="move-route">地下鉄：明洞駅（4号線）→ 東大門歴史文化公園駅乗換 → 長漢坪駅（5号線）約20分</span>
+              <span class="move-fee">約140円</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">13:00</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🚌 仁川国際空港へ出発 ⚠️ 最重要</div>
+          <div class="desc"><b>15:50発フライトに対し、遅くとも13:00にはホテルを出発。</b><br>空港には14:30〜14:45着が目標（出発2時間前チェックイン）。</div>
+          <div class="move">
+            <div class="move-h">🚇🚌 ホテル → 仁川国際空港（2ルート）</div>
+            <div class="move-row">
+              <span class="move-route">① 地下鉄：長漢坪駅（5号線）→ ソウル駅乗換 → AREX直通で仁川空港 約90〜100分</span>
+              <span class="move-fee">約905円</span>
+            </div>
+            <div class="move-row">
+              <span class="move-route">② リムジンバス：長漢坪・東大門周辺バス停 → 仁川空港 約75〜90分（渋滞次第）</span>
+              <span class="move-fee">約1,600円</span>
+            </div>
+            <div class="move-alt">⚠️ こどもの日（祝日）は道路混雑が読めない。AREX（地下鉄）ルートが時間が読みやすくておすすめ。</div>
+          </div>
+          <div class="warn"><b>⚠️ 5月5日はこどもの日！</b>交通混雑が想定されるため、13:00出発を厳守。遅れると乗り遅れリスクあり。</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">14:30</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🛫 仁川国際空港 チェックイン・出国</div>
+          <div class="desc">保安検査・出国審査。免税品購入はここで。<br>T-moneyカードの払い戻し：空港コンビニで可能（手数料 約50円）</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">15:50</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div><div class="vl"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">✈️ KE2173便 出発</div>
+          <div class="desc">仁川 15:50発 → 神戸 17:45着 ／ エコノミークラス ／ 受託手荷物 23kg×1個</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-gut">
+          <div class="tl-t">17:45</div>
+          <div class="tl-dc"><div class="dot" style="background:var(--d3b)"></div></div>
+        </div>
+        <div class="tl-body">
+          <div class="spot-name">🏠 神戸空港 到着 ／ お疲れさまでした！</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /DAY3 -->
+
+</div><!-- /tab-wrap -->
+
+<!-- MAP SECTION -->
+<div class="map-section">
+
+  <div id="map-day1-wrap">
+    <div class="map-header hd1">🗺️ DAY 1 ルートマップ — 到着 &amp; 市内散策（5月3日）</div>
+    <div class="map-wrap">
+      <div id="map1" class="leaflet-map"></div>
+      <div class="map-legend">
+        <span class="leg"><span class="leg-dot" style="background:#f59e0b"></span>Recenz Hotel（宿泊）</span>
+        <span class="leg"><span class="leg-dot" style="background:#1a4a7a"></span>② 南大門市場</span>
+        <span class="leg"><span class="leg-dot" style="background:#1a4a7a"></span>③ 景福宮</span>
+        <span class="leg"><span class="leg-dot" style="background:#1a4a7a"></span>④ 三清洞（夕食）</span>
+        <span class="leg" style="margin-left:auto">--- 地下鉄 &nbsp; — タクシー</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-day2-wrap" style="display:none; margin-top:0">
+    <div class="map-header hd2">🗺️ DAY 2 ルートマップ — ソウル全力観光（5月4日）</div>
+    <div class="map-wrap">
+      <div id="map2" class="leaflet-map"></div>
+      <div class="map-legend">
+        <span class="leg"><span class="leg-dot" style="background:#f59e0b"></span>Recenz Hotel</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>① 北村韓屋村</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>② 仁寺洞</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>③ 景福宮</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>④ ピョルマダン図書館</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>⑤ 漢江公園</span>
+        <span class="leg"><span class="leg-dot" style="background:#145a32"></span>⑥ 南山タワー（任意）</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-day3-wrap" style="display:none; margin-top:0">
+    <div class="map-header hd3">🗺️ DAY 3 ルートマップ — 昌徳宮マスト &amp; 帰国（5月5日）</div>
+    <div class="map-wrap">
+      <div id="map3" class="leaflet-map"></div>
+      <div class="map-legend">
+        <span class="leg"><span class="leg-dot" style="background:#f59e0b"></span>Recenz Hotel（出発）</span>
+        <span class="leg"><span class="leg-dot" style="background:#7b3300"></span>① 昌徳宮（マスト）</span>
+        <span class="leg"><span class="leg-dot" style="background:#7b3300"></span>② 明洞</span>
+        <span class="leg"><span class="leg-dot" style="background:#7b3300"></span>③ ホテル→仁川空港</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /map-section -->
+<div class="outer">
+  <div class="info-card">
+    <h3>🚇 交通・実用メモ</h3>
+    <div class="info-grid">
+      <div class="inf"><b>T-moneyカード</b>空港コンビニで購入 約380円。地下鉄・バス・コンビニ払い可。帰り払い戻し可（手数料 約50円）</div>
+      <div class="inf"><b>地下鉄運賃</b>基本 約138円〜。ICカード方式でタッチするだけ。乗換は連続乗換なら追加料金なし。</div>
+      <div class="inf"><b>タクシー</b>Kakao Taxiアプリ推奨（日本語対応）。カード払いOK。初乗り 約457円。深夜22〜04時は20%割増。</div>
+      <div class="inf"><b>通貨換算目安</b>1円 ≈ 9.5〜10.5ウォン（2026年4月時点）。空港・明洞の公認両替所がレート良好。</div>
+      <div class="inf"><b>ホテル最寄り駅</b>地下鉄5号線「長漢坪（チャンハンピョン）駅」徒歩約4分。東大門市場まで地下鉄で約15分。</div>
+      <div class="inf"><b>昌徳宮 定休日</b>月曜定休 → DAY 2（月曜）は入場不可。DAY 3（火曜）に回す構成にしてある。</div>
+    </div>
+  </div>
+  <div class="info-card">
+    <h3>💰 概算予算（1人・現地費用のみ）</h3>
+    <div class="info-grid">
+      <div class="inf"><b>交通費（3日間）</b>地下鉄中心 約2,500〜3,500円</div>
+      <div class="inf"><b>食費（3日間）</b>約8,500〜13,500円</div>
+      <div class="inf"><b>観光入場料</b>約1,500〜2,500円</div>
+      <div class="inf"><b>ショッピング・お土産</b>予算次第（コスメ・食材等 約3,000円〜）</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HOTEL = [37.5622, 127.0617];
+
+function makeIcon(color, label) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:${color};border:2px solid #fff;border-radius:50%;
+      width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:700;font-size:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.3);font-family:sans-serif;
+    ">${label}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16]
+  });
+}
+
+function initMap(id, center, zoom, spots, routes) {
+  const map = L.map(id, { zoomControl: true }).setView(center, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  spots.forEach(s => {
+    L.marker(s.latlng, { icon: makeIcon(s.color, s.label) })
+      .addTo(map)
+      .bindPopup(`<b>${s.name}</b><br><span style="font-size:12px;color:#666">${s.desc}</span>`);
+  });
+
+  routes.forEach(r => {
+    L.polyline(r.path, {
+      color: r.color,
+      weight: 3,
+      opacity: 0.75,
+      dashArray: r.dash || null
+    }).addTo(map);
+  });
+
+  return map;
+}
+
+let maps = {};
+
+function initDay1() {
+  if (maps[1]) return;
+  maps[1] = initMap('map1',
+    [37.568, 126.988], 13,
+    [
+      { latlng: HOTEL,              color:'#f59e0b', label:'H',  name:'Recenz Hotel',  desc:'宿泊先・長漢坪駅付近' },
+      { latlng: [37.5593, 126.9777], color:'#1a4a7a', label:'2',  name:'南大門市場',      desc:'16:30〜 食べ歩き・雑貨' },
+      { latlng: [37.5796, 126.9770], color:'#1a4a7a', label:'3',  name:'景福宮',          desc:'18:00〜 夜間開放' },
+      { latlng: [37.5908, 126.9810], color:'#1a4a7a', label:'4',  name:'三清洞',          desc:'20:00〜 夕食' },
+    ],
+    [
+      { path: [HOTEL, [37.5593, 126.9777]], color:'#1a4a7a', dash:'8 5' },
+      { path: [[37.5593, 126.9777], [37.5796, 126.9770]], color:'#1a4a7a', dash:'8 5' },
+      { path: [[37.5796, 126.9770], [37.5908, 126.9810]], color:'#1a4a7a', dash: null },
+      { path: [[37.5908, 126.9810], HOTEL], color:'#f59e0b', dash:'5 6' },
+    ]
+  );
+}
+
+function initDay2() {
+  if (maps[2]) return;
+  maps[2] = initMap('map2',
+    [37.553, 127.010], 12,
+    [
+      { latlng: HOTEL,               color:'#f59e0b', label:'H',  name:'Recenz Hotel',          desc:'出発・帰着' },
+      { latlng: [37.5815, 126.9850], color:'#145a32', label:'1',  name:'北村韓屋村',              desc:'9:00〜 朝散歩' },
+      { latlng: [37.5717, 126.9861], color:'#145a32', label:'2',  name:'仁寺洞',                  desc:'10:30〜 ショッピング' },
+      { latlng: [37.5796, 126.9770], color:'#145a32', label:'3',  name:'景福宮',                  desc:'13:30〜 世界遺産' },
+      { latlng: [37.5101, 127.0601], color:'#145a32', label:'4',  name:'ピョルマダン図書館',      desc:'16:00〜 COEX内・無料' },
+      { latlng: [37.5294, 127.0700], color:'#145a32', label:'5',  name:'漢江公園（トゥッソム）', desc:'18:00〜 チキン＆ビール' },
+      { latlng: [37.5512, 126.9882], color:'#888',    label:'6',  name:'南山タワー（任意）',     desc:'20:30〜 夜景' },
+    ],
+    [
+      { path: [HOTEL, [37.5815, 126.9850]], color:'#145a32', dash:'8 5' },
+      { path: [[37.5815, 126.9850], [37.5717, 126.9861]], color:'#145a32', dash: null },
+      { path: [[37.5717, 126.9861], [37.5796, 126.9770]], color:'#145a32', dash: null },
+      { path: [[37.5796, 126.9770], [37.5101, 127.0601]], color:'#145a32', dash:'8 5' },
+      { path: [[37.5101, 127.0601], [37.5294, 127.0700]], color:'#145a32', dash:'8 5' },
+      { path: [[37.5294, 127.0700], [37.5512, 126.9882]], color:'#888',    dash:'5 6' },
+      { path: [[37.5294, 127.0700], HOTEL],               color:'#f59e0b', dash:'8 5' },
+    ]
+  );
+}
+
+function initDay3() {
+  if (maps[3]) return;
+  maps[3] = initMap('map3',
+    [37.567, 127.003], 13,
+    [
+      { latlng: HOTEL,               color:'#f59e0b', label:'H',  name:'Recenz Hotel',  desc:'8:30 チェックアウト' },
+      { latlng: [37.5794, 126.9910], color:'#7b3300', label:'1',  name:'昌徳宮',          desc:'9:00〜 世界遺産★マスト' },
+      { latlng: [37.5642, 126.9861], color:'#7b3300', label:'2',  name:'明洞',            desc:'11:00〜 お土産・昼食' },
+      { latlng: [37.4602, 126.4407], color:'#e53935', label:'✈', name:'仁川国際空港',    desc:'14:30着・15:50発' },
+    ],
+    [
+      { path: [HOTEL, [37.5794, 126.9910]], color:'#7b3300', dash:'8 5' },
+      { path: [[37.5794, 126.9910], [37.5642, 126.9861]], color:'#7b3300', dash: null },
+      { path: [[37.5642, 126.9861], HOTEL], color:'#7b3300', dash:'8 5' },
+    ]
+  );
+}
+
+function sw(d) {
+  [1,2,3].forEach(i => {
+    document.getElementById('p'+i).classList.remove('active');
+    const mw = document.getElementById('map-day'+i+'-wrap');
+    if (mw) mw.style.display = 'none';
+  });
+  document.getElementById('p'+d).classList.add('active');
+  const target = document.getElementById('map-day'+d+'-wrap');
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => { b.className = 'tab-btn'; });
+  document.querySelectorAll('.tab-btn')[d-1].className = 'tab-btn a'+d;
+
+  if (d === 1) { initDay1(); setTimeout(()=>maps[1]&&maps[1].invalidateSize(),100); }
+  if (d === 2) { initDay2(); setTimeout(()=>maps[2]&&maps[2].invalidateSize(),100); }
+  if (d === 3) { initDay3(); setTimeout(()=>maps[3]&&maps[3].invalidateSize(),100); }
+}
+
+window.addEventListener('load', () => { initDay1(); });
+</script>
+</body>
+</html>
